@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채팅</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            background: #fff;
+        }
+
+        header {
+            text-align: center;
+            padding: 14px;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+        }
+
+        .chat {
+            padding: 16px;
+            padding-bottom: 130px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            overflow-y: auto;
+        }
+
+        .msg-row {
+            display: flex;
+        }
+
+        .msg-row.left {
+            justify-content: flex-start;
+        }
+
+        .msg-row.right {
+            justify-content: flex-end;
+            margin-top: 6px;
+        }
+
+        .msg-row.left+.msg-row.left {
+            margin-top: -2px;
+        }
+
+        .msg {
+            max-width: 70%;
+            padding: 12px 14px;
+            border-radius: 8px;
+            background: #eee;
+            font-size: 14px;
+            line-height: 1.4;
+            word-break: break-word;
+
+        }
+
+        .msg.user {
+            background: #2979ff;
+            color: white;
+        }
+
+        .input-box {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            gap: 6px;
+            padding: 8px;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom));
+            border-top: 1px solid #ddd;
+            background: white;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 14px;
+            background-color: #2979ff;
+            border-radius: 8px;
+            color: white;
+            border: none;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>채팅</header>
+
+    <div class="chat" id="chat">
+        <div class="msg-row left">
+            <div class="msg">
+                오빠 나 오늘 <b>집</b>으로 데리러 와줄 수 있어?
+                이 <b>주소</b>로 오면 돼! 도착해서 내 <b>폰</b>으로 꼭 전화 주라~!
+                그리고 오늘 내 <b>포인트</b> 컬러는 <b>노랑</b>이야!💛
+            </div>
+        </div>
+    </div>
+
+    <div class="input-box">
+        <input id="code" placeholder="힌트코드 입력..." />
+        <button onclick="send()">입력</button>
+    </div>
+
+    <script>
+        const hints = {
+            "HAPPY": "정답입니다! 501호로 이동해주세요.\n힌트코드 입력 시, 힌트를 사용할 수 있습니다.",
+            "ROOM1": "Do Not Disturb, 빈 칸 개수를 잘 살펴보세요.",
+            "ROOM2": "티켓 발권기를 통해 티켓을 구매해주세요.",
+            "ROOM3": "티켓 뒷 장의 일련번호 택의 텍스트와 같은 색상의 텍스트를 찾아보세요.",
+            "ROOM4": "📅 우리가 처음 만난 날이야."
+        };
+
+        let unlocked = localStorage.getItem("unlocked") === "true";
+
+        function send() {
+            const input = document.getElementById("code");
+            const value = input.value.trim().toUpperCase();
+            if (!value) return;
+
+            addMessage(value, true);
+            input.value = "";
+
+            setTimeout(() => {
+                if (!unlocked) {
+                    if (value === "HAPPY") {
+                        unlocked = true;
+                        localStorage.setItem("unlocked", "true");
+                        if (navigator.vibrate) navigator.vibrate(200);
+                        addMessage(hints["HAPPY"], false);
+                    } else {
+                        addMessage("오답입니다! 다시 생각해보세요.", false);
+                    }
+                    return;
+                }
+
+                addMessage(hints[value] || "잘못입력했습니다.", false);
+            }, 500);
+        }
+
+        function addMessage(text, isUser) {
+            const chat = document.getElementById("chat");
+
+            const row = document.createElement("div");
+            row.className = "msg-row " + (isUser ? "right" : "left");
+
+            const bubble = document.createElement("div");
+            bubble.className = "msg" + (isUser ? " user" : "");
+            bubble.innerText = text;
+
+            row.appendChild(bubble);
+            chat.appendChild(row);
+
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        // ✅ 엔터키로 전송
+        document.getElementById("code").addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                send();
+            }
+        });
+    </script>
+
+</body>
+
+</html>
